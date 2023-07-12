@@ -1,23 +1,23 @@
 {
-  "name": "validate-jjrdev",
-  "version": "1.0.0",
-  "description": "Pacote para validação de formulários e variáveis",
-  "main": "validate.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jjr-dev/validate.js.git"
-  },
-  "keywords": [
-    "validate",
-    "form"
-  ],
-  "author": "jjr.dev",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jjr-dev/validate.js/issues"
-  },
-  "homepage": "https://github.com/jjr-dev/validate.js#readme"
+    "name": "validate-jjrdev",
+    "version": "1.0.1",
+    "description": "Pacote para validação de formulários e variáveis",
+    "main": "validate.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jjr-dev/validate.js.git"
+    },
+    "keywords": [
+        "validate",
+        "form"
+    ],
+    "author": "jjr.dev",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/jjr-dev/validate.js/issues"
+    },
+    "homepage": "https://github.com/jjr-dev/validate.js#readme"
 }
