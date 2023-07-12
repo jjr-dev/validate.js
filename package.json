@@ -1,6 +1,6 @@
 {
     "name": "validate-jjrdev",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Pacote para validação de formulários e variáveis",
     "main": "validate.js",
     "scripts": {
