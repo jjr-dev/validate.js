@@ -28,8 +28,23 @@ class Validate {
                 }
             });
 
-            form.addEventListener("reset", (e) => {
-                // TODO: Remover avisos ao resetar
+            form.addEventListener("reset", () => {
+                if ("rules" in options) {
+                    for (const name in options.rules) {
+                        const itemElement = form.querySelector(
+                            `[name="${name}"]`
+                        );
+                        if (!itemElement) continue;
+
+                        itemElement.classList.remove("validate-error");
+                        itemElement.removeAttribute("invalid");
+                    }
+                }
+
+                const msgs = form.querySelectorAll("label.form-error-msg");
+                for (const msg of msgs) {
+                    msg.remove();
+                }
             });
         }
     }
