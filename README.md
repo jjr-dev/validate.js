@@ -79,6 +79,12 @@ rules: {
 | name      | Boleano        | `false` | `true`                  | Campo deve ser um texto sem caracteres especiais ou números |
 | pattern   | String (regex) | `null`  | `[1-9]`                 | Campo deve corresponder um regex                            |
 
+É possível definir as regras `required`, `minlength`, e `maxlength` diretamente na tag HTML, por exemplo:
+
+```html
+<input required /> <input minlength="10" maxlength="15" />
+```
+
 ### Mensagens
 
 As mensagens de cada campo do formulário deve ser definida na propriedade `messages` do objeto, como por exemplo:

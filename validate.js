@@ -1,52 +1,72 @@
 class Validate {
     form(form, options = {}) {
         form = document.querySelector(form);
+        if (!form) return;
 
-        if (form) {
-            form.setAttribute("novalidate", true);
+        const controls = form.querySelectorAll("input, textarea, select");
+        for (const control of controls) {
+            const name = control.getAttribute("name");
+            if (!name) continue;
 
-            form.addEventListener("submit", (e) => {
-                e.preventDefault();
+            if (!("rules" in options)) options.rules = {};
+            if (!(name in options.rules)) options.rules[name] = {};
 
-                this.validateForm(form, options);
-
-                if ("rules" in options) {
-                    for (const name in options.rules) {
-                        const itemsElement = form.querySelectorAll(
-                            `[name="${name}"]`
-                        );
-                        if (!itemsElement) continue;
-
-                        for (const itemElement of itemsElement) {
-                            ["change", "input"].forEach((event) => {
-                                itemElement.addEventListener(event, () => {
-                                    this.validateForm(form, options, true);
-                                });
-                            });
-                        }
+            ["required", "minlength", "minlength"].forEach((rule) => {
+                if (!(rule in options.rules[name])) {
+                    let value = control.getAttribute(rule);
+                    if (value || value === "") {
+                        value = value.toLowerCase();
+                        options.rules[name][rule] = value === "true" || value === name || value === "" ? true : value === "false" ? false : value;
                     }
-                }
-            });
-
-            form.addEventListener("reset", () => {
-                if ("rules" in options) {
-                    for (const name in options.rules) {
-                        const itemElement = form.querySelector(
-                            `[name="${name}"]`
-                        );
-                        if (!itemElement) continue;
-
-                        itemElement.classList.remove("validate-error");
-                        itemElement.removeAttribute("invalid");
-                    }
-                }
-
-                const msgs = form.querySelectorAll("label.form-error-msg");
-                for (const msg of msgs) {
-                    msg.remove();
                 }
             });
         }
+
+        const { rules } = options;
+
+        if (rules) {
+            for (const rule in rules) {
+                if (Object.keys(rules[rule]).length === 0) delete rules[rule];
+            }
+        }
+
+        form.setAttribute("novalidate", true);
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            this.validateForm(form, options);
+
+            if (rules) {
+                for (const name in options.rules) {
+                    const itemsElement = form.querySelectorAll(`[name="${name}"]`);
+                    if (!itemsElement) continue;
+
+                    for (const itemElement of itemsElement) {
+                        ["change", "input"].forEach((event) => {
+                            itemElement.addEventListener(event, () => {
+                                this.validateForm(form, options, true);
+                            });
+                        });
+                    }
+                }
+            }
+        });
+
+        form.addEventListener("reset", () => {
+            if (rules) {
+                for (const name in options.rules) {
+                    const itemElement = form.querySelector(`[name="${name}"]`);
+                    if (!itemElement) continue;
+
+                    itemElement.classList.remove("validate-error");
+                    itemElement.removeAttribute("invalid");
+
+                    const msg = form.querySelector(`label.form-error-msg[for="${name}"]`);
+                    if (msg) msg.remove();
+                }
+            }
+        });
     }
 
     getFormData(form) {
@@ -57,8 +77,7 @@ class Validate {
 
             if (el.type == "radio") {
                 const checked = form.querySelector(`[name="${item}"]:checked`);
-                data[item] =
-                    checked.getAttribute("value") ?? checked.getAttribute("id");
+                data[item] = checked.getAttribute("value") ?? checked.getAttribute("id");
             }
         }
 
@@ -85,9 +104,7 @@ class Validate {
                     parent = parent.parentNode;
                 }
 
-                const oldMessage = parent.parentNode.querySelector(
-                    "label.form-error-msg"
-                );
+                const oldMessage = parent.parentNode.querySelector("label.form-error-msg");
                 if (oldMessage) oldMessage.remove();
 
                 itemElement.removeAttribute("invalid");
@@ -101,10 +118,7 @@ class Validate {
 
                 if (message === "") continue;
 
-                parent.insertAdjacentHTML(
-                    "afterend",
-                    `<label for='${name}' class='form-error-msg'>${message}</label>`
-                );
+                parent.insertAdjacentHTML("afterend", `<label for='${name}' class='form-error-msg'>${message}</label>`);
 
                 parent.classList.add("validate-error");
 
@@ -141,36 +155,28 @@ class Validate {
 
             switch (rule) {
                 case "required":
-                    if (this.ruleRequired(ruleValue, itemValue))
-                        addError(name, rule);
+                    if (this.ruleRequired(ruleValue, itemValue)) addError(name, rule);
                     break;
                 case "email":
-                    if (this.ruleEmail(ruleValue, itemValue))
-                        addError(name, rule);
+                    if (this.ruleEmail(ruleValue, itemValue)) addError(name, rule);
                     break;
                 case "minlength":
-                    if (this.ruleMinLength(ruleValue, itemValue))
-                        addError(name, rule, ruleValue);
+                    if (this.ruleMinLength(ruleValue, itemValue)) addError(name, rule, ruleValue);
                     break;
                 case "maxlength":
-                    if (this.ruleMaxLength(ruleValue, itemValue))
-                        addError(name, rule, ruleValue);
+                    if (this.ruleMaxLength(ruleValue, itemValue)) addError(name, rule, ruleValue);
                     break;
                 case "length":
-                    if (!this.ruleLength(ruleValue, itemValue))
-                        addError(name, rule);
+                    if (!this.ruleLength(ruleValue, itemValue)) addError(name, rule);
                     break;
                 case "equalTo":
-                    if (!this.ruleEqualTo(ruleValue, itemValue, form))
-                        addError(name, rule);
+                    if (!this.ruleEqualTo(ruleValue, itemValue, form)) addError(name, rule);
                     break;
                 case "name":
-                    if (!this.ruleName(ruleValue, itemValue))
-                        addError(name, rule);
+                    if (!this.ruleName(ruleValue, itemValue)) addError(name, rule);
                     break;
                 case "pattern":
-                    if (!this.rulePattern(ruleValue, itemValue))
-                        addError(name, rule);
+                    if (!this.rulePattern(ruleValue, itemValue)) addError(name, rule);
                     break;
             }
         };
@@ -178,9 +184,9 @@ class Validate {
         const data = this.getFormData(form);
 
         const errors = {};
-        const { messages, parents } = options;
+        const { messages, parents, rules } = options;
 
-        if ("rules" in options) {
+        if (rules) {
             for (const name in options.rules) {
                 const rules = options.rules[name];
 
@@ -192,12 +198,7 @@ class Validate {
             }
         }
 
-        if (
-            !this.showFormErrors(form, errors, parents, reValidate) &&
-            !reValidate &&
-            options.submitHandler
-        )
-            options.submitHandler(data, form);
+        if (!this.showFormErrors(form, errors, parents, reValidate) && !reValidate && options.submitHandler) options.submitHandler(data, form);
     }
 
     isEmpty(str) {
