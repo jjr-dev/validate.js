@@ -1,14 +1,62 @@
 class Validate {
+    constructor(form = false, options = {}) {
+        this.rules = {
+            name: (rule, value) => {
+                return !rule || this.isAlpha(value, true);
+            },
+            required: (rule, value) => {
+                return !rule || !this.isEmpty(value);
+            },
+            email: (rule, value) => {
+                return !rule || this.isEmail(value);
+            },
+            minlength: (rule, value) => {
+                return value.length >= parseInt(rule);
+            },
+            maxlength: (rule, value) => {
+                return value.length <= parseInt(rule);
+            },
+            length: (rule, value) => {
+                return value.length == parseInt(rule);
+            },
+            equalTo: (rule, value, form) => {
+                const equal = form.querySelector(`[name="${rule}"]`);
+
+                if (!equal) return false;
+                return value == equal.value;
+            },
+            pattern: (rule, value) => {
+                const regex = new RegExp(rule);
+                return regex.test(value);
+            },
+        };
+
+        this.messages = {
+            name: "Nome inválido",
+            required: "Campo obrigatório",
+            email: "Email inválido",
+            minlength: "Campo deve ser menor que ? caracteres",
+            maxlength: "Campo deve ser maior que ? caracteres",
+            length: "Campo deve conter ? caracteres",
+            equalTo: "Valor não corresponde",
+            pattern: "Formato inválido",
+        };
+
+        if (form) this.form(form, options);
+    }
+
     form(form, options = {}) {
-        form = document.querySelector(form);
+        form = typeof form == "string" ? document.querySelector(form) : form;
         if (!form) return;
+
+        if (!("rules" in options)) options.rules = {};
+        if (!("messages" in options)) options.messages = {};
 
         const controls = form.querySelectorAll("input, textarea, select");
         for (const control of controls) {
             const name = control.getAttribute("name");
             if (!name) continue;
 
-            if (!("rules" in options)) options.rules = {};
             if (!(name in options.rules)) options.rules[name] = {};
 
             ["required", "minlength", "minlength"].forEach((rule) => {
@@ -20,38 +68,81 @@ class Validate {
                     }
                 }
             });
+
+            if (control.getAttribute("type") === "email" && !("email" in options.rules[name])) options.rules[name]["email"] = true;
+
+            if (!control.validate) {
+                control.validate = {};
+
+                control.validate.addRule = (rule, value = true, message = false) => {
+                    if (!(name in options.rules)) options.rules[name] = {};
+                    options.rules[name][rule] = value;
+
+                    if (message) {
+                        if (!(name in options.messages)) options.messages[name] = {};
+                        options.messages[name][rule] = message;
+                    }
+
+                    this.form(form, options);
+                };
+
+                control.validate.addRules = (rules) => {
+                    for (const rule in rules) {
+                        const item = rules[rule];
+                        control.validate.addRule(rule, item.value, item.message);
+                    }
+                };
+
+                control.validate.removeRule = (rule) => {
+                    if (!(name in options.rules) || !(rule in options.rules[name])) return;
+                    delete options.rules[name][rule];
+
+                    this.form(form, options);
+                };
+
+                control.validate.removeRules = (rules) => {
+                    rules.forEach((rule) => control.validate.removeRule(rule));
+                };
+
+                control.validate.showErrorMessage = (message) => {
+                    this.showFormErrors(
+                        form,
+                        {
+                            [name]: [message],
+                        },
+                        options.parents
+                    );
+                };
+            }
         }
 
         const { rules } = options;
 
         if (rules) {
-            for (const rule in rules) {
-                if (Object.keys(rules[rule]).length === 0) delete rules[rule];
+            for (const name in rules) {
+                if (Object.keys(rules[name]).length === 0) delete rules[name];
             }
         }
 
         form.setAttribute("novalidate", true);
 
-        form.addEventListener("submit", (e) => {
+        form.onsubmit = (e) => {
             e.preventDefault();
 
             this.validateForm(form, options);
 
             if (rules) {
-                for (const name in options.rules) {
-                    const itemsElement = form.querySelectorAll(`[name="${name}"]`);
-                    if (!itemsElement) continue;
-
-                    for (const itemElement of itemsElement) {
+                for (const name in rules) {
+                    form.querySelectorAll(`[name="${name}"]`).forEach((itemElement) => {
                         ["change", "input"].forEach((event) => {
                             itemElement.addEventListener(event, () => {
                                 this.validateForm(form, options, true);
                             });
                         });
-                    }
+                    });
                 }
             }
-        });
+        };
 
         form.addEventListener("reset", () => {
             if (rules) {
@@ -98,11 +189,15 @@ class Validate {
                 const defaultParents = parents["default"] ?? 0;
                 const itemParents = parseInt(parents[name] ?? defaultParents);
 
+                if (!this.isVisibleElement(itemElement) && itemParents == 0) continue;
+
                 let parent = itemElement;
 
                 for (let i = 0; i < itemParents; i++) {
                     parent = parent.parentNode;
                 }
+
+                if (!this.isVisibleElement(parent)) continue;
 
                 const oldMessage = parent.parentNode.querySelector("label.form-error-msg");
                 if (oldMessage) oldMessage.remove();
@@ -135,14 +230,11 @@ class Validate {
     }
 
     validateForm(form, options, reValidate = false) {
-        const getErrorMessage = (rule, name, value = false) => {
-            if (!messages[name] || !messages[name][rule]) return "";
+        const { messages, parents, rules } = options;
 
-            let message = messages[name][rule];
-
-            if (value) message = message.replace("?", value);
-
-            return message;
+        const getErrorMessage = (rule, name, value) => {
+            let message = messages[name] && messages[name][rule] ? messages[name][rule] : this.messages[rule] ?? "";
+            return message.replace("?", value);
         };
 
         const addError = (name, rule, value = false) => {
@@ -153,38 +245,12 @@ class Validate {
             const ruleValue = rules[rule];
             const itemValue = data[name] ?? "";
 
-            switch (rule) {
-                case "required":
-                    if (this.ruleRequired(ruleValue, itemValue)) addError(name, rule);
-                    break;
-                case "email":
-                    if (this.ruleEmail(ruleValue, itemValue)) addError(name, rule);
-                    break;
-                case "minlength":
-                    if (this.ruleMinLength(ruleValue, itemValue)) addError(name, rule, ruleValue);
-                    break;
-                case "maxlength":
-                    if (this.ruleMaxLength(ruleValue, itemValue)) addError(name, rule, ruleValue);
-                    break;
-                case "length":
-                    if (!this.ruleLength(ruleValue, itemValue)) addError(name, rule);
-                    break;
-                case "equalTo":
-                    if (!this.ruleEqualTo(ruleValue, itemValue, form)) addError(name, rule);
-                    break;
-                case "name":
-                    if (!this.ruleName(ruleValue, itemValue)) addError(name, rule);
-                    break;
-                case "pattern":
-                    if (!this.rulePattern(ruleValue, itemValue)) addError(name, rule);
-                    break;
-            }
+            if (rule in this.rules && !this.rules[rule](ruleValue, itemValue, form)) addError(name, rule, ruleValue);
         };
 
         const data = this.getFormData(form);
 
         const errors = {};
-        const { messages, parents, rules } = options;
 
         if (rules) {
             for (const name in options.rules) {
@@ -198,7 +264,12 @@ class Validate {
             }
         }
 
-        if (!this.showFormErrors(form, errors, parents, reValidate) && !reValidate && options.submitHandler) options.submitHandler(data, form);
+        const hasError = this.showFormErrors(form, errors, parents, reValidate);
+
+        if (!reValidate) {
+            if (!hasError && options.submitHandler) options.submitHandler(data, form);
+            else if (hasError && options.invalidHandler) options.invalidHandler(errors, data, form);
+        }
     }
 
     isEmpty(str) {
@@ -220,39 +291,27 @@ class Validate {
         return regex.test(str);
     }
 
-    ruleName(rule, value) {
-        return rule && this.isAlpha(value, true);
+    addCustomRule(name, callback, message = false) {
+        this.rules[name] = callback;
+        if (message) this.addDefaultMessage(name, message);
     }
 
-    ruleRequired(rule, value) {
-        return rule && this.isEmpty(value);
+    addDefaultMessage(name, message) {
+        this.messages[name] = message;
     }
 
-    ruleEmail(rule, value) {
-        return rule && !this.isEmail(value);
-    }
+    isVisibleElement(element) {
+        if (!element) return false;
 
-    ruleMinLength(rule, value) {
-        return value.length > 0 && value.length < parseInt(rule);
-    }
+        let parent = element.parentElement;
+        while (parent) {
+            const style = getComputedStyle(parent);
+            if (style.display === "none" || style.visibility === "hidden") return false;
 
-    ruleMaxLength(rule, value) {
-        return value.length > 0 && value.length > parseInt(rule);
-    }
+            parent = parent.parentElement;
+        }
 
-    ruleLength(rule, value) {
-        return value.length == parseInt(rule);
-    }
-
-    ruleEqualTo(rule, value, form) {
-        const equal = form.querySelector(`[name="${rule}"]`);
-
-        if (!equal) return false;
-        return value == equal.value;
-    }
-
-    rulePattern(rule, value) {
-        const regex = new RegExp(rule);
-        return regex.test(value);
+        const style = getComputedStyle(element);
+        return style.display !== "none" && style.visibility !== "hidden";
     }
 }
