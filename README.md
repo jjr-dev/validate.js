@@ -124,3 +124,38 @@ submitHandler: (data, form) => {
     console.log(data);
 };
 ```
+
+### Métodos de campos
+
+Os campos do formulários recebem alguns métodos dentro do objeto `validate`, por exemplo:
+
+```js
+input.validate.addRule("maxlength", 15);
+```
+
+| Método           | Descrição                                   | Exemplo                                                                                 |
+| ---------------- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| addRule          | Adicionar regra ao campo                    | `input.validate.addRule('maxlength', 15)`                                               |
+| addRules         | Adicionar múltiplas regras ao campo         | `input.validate.addRules([ {maxlength: { value: 15} }, {required: { value: true } } ])` |
+| removeRule       | Remover regra do campo                      | `input.validate.removeRule('maxlength')`;                                               |
+| removeRules      | Remover múltiplas regras do campo           | `input.validate.removeRules(['maxlength', 'required'])`                                 |
+| hasRule          | Verifica se existe a regra no campo         | `input.validate.hasRule('length')`                                                      |
+| isRequired       | Verifica se o campo é obrigatório           | `input.validate.isRequired()`                                                           |
+| isOptional       | Verifica se o campo é opcional              | `input.validate.isOptional()`                                                           |
+| isOptionalEmpty  | Verifica se o campo é opcional e está vazio | `input.validate.isOptional()`                                                           |
+| isEmpty          | Verifica se o campo está vazio              | `input.validate.isEmpty()`                                                              |
+| showErrorMessage | Exibir mensagem de erro no campo            | `input.validate.showErrorMessage('message')`                                            |
+
+### Métodos de formulário
+
+O formulário, assim como o campo, recebe alguns métodos no objeto `validate`, por exemplo:
+| Método | Descrição | Exemplo |
+| ---------------- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| removeErrorMessages | Remove todas as mensagens de erros | `form.validate.removeErrorMessages()` |
+| submit | Executa o envio do formulário | `form.validate.submit()` |
+
+> O método `form.submit()` do próprio objeto DOM não realiza a validação dos campos, por isso é altamente recomendável que se utilize o `form.validate.submit()`.
+
+## Licença
+
+O Validate.Js é um software de código aberto sob a **MIT License**.
