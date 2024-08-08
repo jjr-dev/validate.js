@@ -68,16 +68,18 @@ rules: {
 }
 ```
 
-| Opção     | Tipo           | Padrão  | Exemplo                 | Descrição                                                   |
-| --------- | -------------- | ------- | ----------------------- | ----------------------------------------------------------- |
-| required  | Boleano        | `false` | `true`                  | Campo obrigatório                                           |
-| email     | Boleano        | `false` | `true`                  | Campo de email                                              |
-| minlength | Inteiro        | `null`  | `8`                     | Quantidade mínima de caracteres no campo                    |
-| maxlength | Inteiro        | `null`  | `15`                    | Quantidade máxima de caracteres no campo                    |
-| length    | Inteiro        | `null`  | `12`                    | Quantidade exata de caracteres no campo                     |
-| equalTo   | String         | `null`  | `form#password-confirm` | Campo deve ser igual a outro campo                          |
-| name      | Boleano        | `false` | `true`                  | Campo deve ser um texto sem caracteres especiais ou números |
-| pattern   | String (regex) | `null`  | `[1-9]`                 | Campo deve corresponder um regex                            |
+| Opção     | Tipo           | Padrão  | Exemplo    | Descrição                                                   |
+| --------- | -------------- | ------- | ---------- | ----------------------------------------------------------- |
+| required  | Boleano        | `false` | `true`     | Campo obrigatório                                           |
+| email     | Boleano        | `false` | `true`     | Campo de email                                              |
+| minlength | Inteiro        | `null`  | `8`        | Quantidade mínima de caracteres no campo                    |
+| maxlength | Inteiro        | `null`  | `15`       | Quantidade máxima de caracteres no campo                    |
+| min       | Inteiro        | `null`  | `99`       | Valor numérico mínimo do campo                              |
+| max       | Inteiro        | `null`  | `99`       | Valor numérico máximo do campo                              |
+| length    | Inteiro        | `null`  | `12`       | Quantidade exata de caracteres no campo                     |
+| equalTo   | String         | `null`  | `password` | Campo deve ser igual a outro campo                          |
+| name      | Boleano        | `false` | `true`     | Campo deve ser um texto sem caracteres especiais ou números |
+| pattern   | String (regex) | `null`  | `[1-9]`    | Campo deve corresponder um regex                            |
 
 É possível definir as regras `required`, `minlength`, e `maxlength` diretamente na tag HTML, por exemplo:
 
@@ -152,7 +154,8 @@ O formulário, assim como o campo, recebe alguns métodos no objeto `validate`, 
 | Método | Descrição | Exemplo |
 | ---------------- | ------------------------------------------- | --------------------------------------------------------------------------------------- |
 | removeErrorMessages | Remove todas as mensagens de erros | `form.validate.removeErrorMessages()` |
-| submit | Executa o envio do formulário | `form.validate.submit()` |
+| submit | Executa a validação e envia o formulário | `form.validate.submit()` |
+| valid | Executa a validação do formulário e retorna se é válido | `form.validate.valid()` |
 
 > O método `form.submit()` do próprio objeto DOM não realiza a validação dos campos, por isso é altamente recomendável que se utilize o `form.validate.submit()`.
 

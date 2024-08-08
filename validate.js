@@ -13,6 +13,12 @@ class Validate {
             minlength: (rule, value, element) => {
                 return this.isOptionalEmpty(element) || value.length >= parseInt(rule);
             },
+            min: (rule, value, element) => {
+                return this.isOptionalEmpty(element) || parseInt(value) >= parseInt(rule);
+            },
+            max: (rule, value, element) => {
+                return this.isOptionalEmpty(element) || parseInt(value) <= parseInt(rule);
+            },
             maxlength: (rule, value, element) => {
                 return this.isOptionalEmpty(element) || value.length <= parseInt(rule);
             },
@@ -39,9 +45,11 @@ class Validate {
             name: "Nome inválido",
             required: "Campo obrigatório",
             email: "Email inválido",
-            minlength: "Campo deve ser menor que ? caracteres",
-            maxlength: "Campo deve ser maior que ? caracteres",
+            minlength: "Campo deve ser maior ou igual que ? caracteres",
+            maxlength: "Campo deve ser menor ou igual que ? caracteres",
             length: "Campo deve conter ? caracteres",
+            min: "Campo deve ser maior ou igual a ?",
+            max: "Campo deve ser menor ou igual a ?",
             equalTo: "Valor não corresponde",
             pattern: "Formato inválido",
         };
@@ -63,17 +71,23 @@ class Validate {
 
             if (!(name in options.rules)) options.rules[name] = {};
 
-            ["required", "minlength", "minlength"].forEach((rule) => {
+            ["required", "minlength", "minlength", "min", "max"].forEach((rule) => {
                 if (!(rule in options.rules[name])) {
                     let value = control.getAttribute(rule);
                     if (value || value === "") {
                         value = value.toLowerCase();
-                        options.rules[name][rule] = value === "true" || value === name || value === "" ? true : value === "false" ? false : value;
+                        options.rules[name][rule] =
+                            value === "true" || value === name || value === ""
+                                ? true
+                                : value === "false"
+                                ? false
+                                : value;
                     }
                 }
             });
 
-            if (control.getAttribute("type") === "email" && !("email" in options.rules[name])) options.rules[name]["email"] = true;
+            if (control.getAttribute("type") === "email" && !("email" in options.rules[name]))
+                options.rules[name]["email"] = true;
 
             if (!control.validate) {
                 control.validate = {};
@@ -176,6 +190,7 @@ class Validate {
             form.validate = {
                 removeErrorMessages: () => this.removeErrorMessages(form, controls),
                 submit: () => this.validateForm(form, options),
+                valid: () => !this.validateForm(form, options, false, false),
             };
         }
     }
@@ -233,7 +248,10 @@ class Validate {
 
                 if (message === "") continue;
 
-                parent.insertAdjacentHTML("afterend", `<label for='${name}' class='validate-error-message'>${message}</label>`);
+                parent.insertAdjacentHTML(
+                    "afterend",
+                    `<label for='${name}' class='validate-error-message'>${message}</label>`
+                );
                 parent.setAttribute("invalid", "");
 
                 if (!reValidate && !focused) {
@@ -248,7 +266,7 @@ class Validate {
         return hasError;
     }
 
-    validateForm(form, options, reValidate = false) {
+    validateForm(form, options, reValidate = false, submit = true) {
         const { messages, parents, rules } = options;
 
         const getErrorMessage = (rule, name, value) => {
@@ -265,7 +283,8 @@ class Validate {
             const itemValue = data[name] ?? "";
             const element = form.querySelector(`[name='${name}']`);
 
-            if (rule in this.rules && !this.rules[rule](ruleValue, itemValue, element, form)) addError(name, rule, ruleValue);
+            if (rule in this.rules && !this.rules[rule](ruleValue, itemValue, element, form))
+                addError(name, rule, ruleValue);
         };
 
         const data = this.getFormData(form);
@@ -286,10 +305,12 @@ class Validate {
 
         const hasError = this.showFormErrors(form, errors, parents, reValidate);
 
-        if (!reValidate) {
+        if (!reValidate && submit) {
             if (!hasError && options.submitHandler) options.submitHandler(data, form);
             else if (hasError && options.invalidHandler) options.invalidHandler(errors, data, form);
         }
+
+        return hasError;
     }
 
     isRequired(element) {

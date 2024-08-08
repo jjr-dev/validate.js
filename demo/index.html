@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Validate.js Test</title>
+        <style>
+            .validate-error-message {
+                color: red;
+                font-size: 0.875em;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Test Validate.js Library</h1>
+        <form id="testForm">
+            <div>
+                <label for="name">Name (required, alpha only):</label>
+                <input type="text" name="name" required />
+            </div>
+            <div>
+                <label for="email">Email (required):</label>
+                <input type="email" name="email" required />
+            </div>
+            <div>
+                <label for="password">Password (required, minlength 6):</label>
+                <input type="password" name="password" required minlength="6" />
+            </div>
+            <div>
+                <label for="confirmPassword">Confirm Password (equalTo password):</label>
+                <input type="password" name="confirmPassword" required />
+            </div>
+            <div>
+                <label for="confirmPassword">Age:</label>
+                <input type="number" name="age" min="18" max="99" />
+            </div>
+            <button type="submit">Submit</button>
+            <button type="reset">Reset</button>
+        </form>
+
+        <script src="../validate.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const form = document.getElementById("testForm");
+
+                const validator = new Validate(form, {
+                    rules: {
+                        confirmPassword: {
+                            equalTo: "password",
+                        },
+                    },
+                    submitHandler: (data, form) => {
+                        alert("Form is valid! Submitting...");
+                        console.log(data);
+                    },
+                    invalidHandler: (errors, data, form) => {
+                        alert("Form is invalid! Check the console...");
+                        console.log(errors);
+                    },
+                });
+
+                form.validate.valid();
+            });
+        </script>
+    </body>
+</html>
