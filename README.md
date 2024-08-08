@@ -81,7 +81,7 @@ rules: {
 | name      | Boleano        | `false` | `true`     | Campo deve ser um texto sem caracteres especiais ou números |
 | pattern   | String (regex) | `null`  | `[1-9]`    | Campo deve corresponder um regex                            |
 
-É possível definir as regras `required`, `minlength`, e `maxlength` diretamente na tag HTML, por exemplo:
+É possível definir as regras `required`, `min`, `max`, `minlength`, e `maxlength` diretamente na tag HTML, por exemplo:
 
 ```html
 <input required /> <input minlength="10" maxlength="15" />

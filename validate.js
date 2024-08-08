@@ -325,8 +325,9 @@ class Validate {
         return this.isOptional(element) && this.isEmpty(element.value);
     }
 
-    isEmpty(str) {
-        return str.trim().length === 0;
+    isEmpty(value) {
+        if (value instanceof File) return value.size === 0;
+        return value.trim().length === 0;
     }
 
     isAlpha(str, ignoreSpace = false) {
